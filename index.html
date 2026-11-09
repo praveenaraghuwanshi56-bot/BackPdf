@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cozy PDF Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<style>
+:root{--bg:#f6efe4;--pn:#fffaf1;--ink:#3b2f26;--mut:#8a7766;--ac:#b8672b;--acd:#fff;--ln:#e6d8c4;--in:#f1e6d3;--sh:rgba(90,60,30,.18);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1d1814;--pn:#26201a;--ink:#f0e4d0;--mut:#a3917b;--ac:#d98b4a;--acd:#2a1c10;--ln:#3a3027;--in:#1a1511;--sh:rgba(0,0,0,.45)}}
+:root[data-theme="dark"]{--bg:#1d1814;--pn:#26201a;--ink:#f0e4d0;--mut:#a3917b;--ac:#d98b4a;--acd:#2a1c10;--ln:#3a3027;--in:#1a1511;--sh:rgba(0,0,0,.45)}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 Nunito,system-ui,sans-serif;display:flex;flex-direction:column;overflow:hidden}
+button,select,input{font:inherit;color:inherit}
+header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 16px;background:var(--pn);border-bottom:1px solid var(--ln)}
+h1{font:600 19px Fraunces,Georgia,serif;margin:0}header p{margin:0;font-size:12px;color:var(--mut)}
+.logo{font-size:24px;margin-right:10px}.row{display:flex;align-items:center;gap:8px}
+.btn{border:1px solid var(--ln);background:var(--in);padding:8px 12px;border-radius:12px;cursor:pointer;font-weight:700;font-size:12px;transition:.15s}
+.btn:hover:not(:disabled){transform:translateY(-1px);border-color:var(--ac)}.btn:disabled{opacity:.4;cursor:not-allowed}
+.pri{background:var(--ac);color:var(--acd);border-color:var(--ac)}
+main{flex:1;display:flex;min-height:0}
+aside{width:340px;flex:none;overflow-y:auto;background:var(--pn);border-right:1px solid var(--ln);padding:14px;display:flex;flex-direction:column;gap:16px}
+h2{margin:0 0 8px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--mut)}
+.card{background:var(--in);border:1px solid var(--ln);border-radius:14px;padding:10px}
+.drop{border:2px dashed var(--ln);border-radius:14px;padding:14px;text-align:center;cursor:pointer;transition:.15s}
+.drop:hover,.drop.on{border-color:var(--ac);background:var(--in)}.drop b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.drop small{color:var(--mut)}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--in);padding:4px;border-radius:12px;margin-bottom:10px}
+.seg button{border:0;background:none;padding:7px;border-radius:9px;cursor:pointer;font-weight:700;font-size:12px;color:var(--mut)}
+.seg button.on{background:var(--ac);color:var(--acd)}
+.sw{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.sw button{height:34px;border-radius:10px;border:2px solid var(--ln);font-size:10px;font-weight:700;cursor:pointer}.sw button.on{border-color:var(--ac);box-shadow:0 0 0 2px var(--ac)}
+label{display:block;font-size:12px;color:var(--mut);margin:8px 0 4px;font-weight:600}.sp{display:flex;justify-content:space-between}
+select,input[type=text],input[type=number]{width:100%;background:var(--in);border:1px solid var(--ln);border-radius:10px;padding:8px;outline:0}
+select:focus,input:focus{border-color:var(--ac)}
+input[type=range]{width:100%;accent-color:var(--ac)}input[type=color]{width:42px;height:42px;border:0;padding:0;background:none;cursor:pointer}
+.tg{display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:12px}
+.tg input{width:38px;height:22px;accent-color:var(--ac)}
+small.h{display:block;font-size:11px;color:var(--mut);margin-top:6px}
+.foot{margin-top:auto;text-align:center;font-size:11px;color:var(--mut)}
+#view{flex:1;overflow:auto;display:flex;padding:24px;position:relative;background:radial-gradient(circle at 50% 0,var(--pn),var(--bg))}
+#cv{margin:auto;display:none;border-radius:4px;box-shadow:0 12px 40px var(--sh);max-width:none}
+#empty{margin:auto;text-align:center;max-width:320px}#empty .ic{font-size:44px}#empty h3{font:600 18px Fraunces,Georgia,serif;margin:6px 0}#empty p{color:var(--mut);margin:0 0 14px}
+#bar{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);display:none;align-items:center;gap:6px;background:var(--pn);border:1px solid var(--ln);border-radius:99px;padding:6px 10px;box-shadow:0 6px 24px var(--sh);z-index:5;white-space:nowrap}
+#bar .btn{padding:5px 10px;border-radius:99px}#bar input{width:46px;text-align:center;padding:4px}
+.ov{position:fixed;inset:0;background:rgba(20,14,8,.7);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:20;color:#fff;text-align:center}
+.sp1{width:38px;height:38px;border:4px solid rgba(255,255,255,.25);border-top-color:#e8a15f;border-radius:50%;animation:r 1s linear infinite;margin-bottom:12px}@keyframes r{to{transform:rotate(1turn)}}
+#toast{position:fixed;left:50%;top:70px;transform:translateX(-50%);background:var(--ac);color:var(--acd);padding:8px 16px;border-radius:99px;font-weight:700;font-size:12px;display:none;z-index:30}
+@media(max-width:860px){body{overflow:auto}main{flex-direction:column}aside{width:100%;max-height:none;border-right:0}#view{min-height:70vh}header p{display:none}}
+</style></head>
+<body>
+<header>
+ <div class="row"><span class="logo">📖</span><div><h1>Cozy PDF Studio</h1><p>Warm paper tones, vintage textures &amp; eye-relief PDF editing</p></div></div>
+ <div class="row">
+  <button class="btn" id="th" title="Toggle light / dark">🌗</button>
+  <button class="btn" id="png" disabled>🖼 Export Page PNG</button>
+  <button class="btn pri" id="pdf" disabled>⬇ Download PDF</button>
+ </div>
+</header>
+<main>
+<aside>
+ <section><h2>1. Select PDF Document</h2>
+  <div class="drop" id="dz"><input type="file" id="fi" accept="application/pdf" hidden>
+   <div style="font-size:28px">☁️</div><b id="fn">Click or drop PDF file here</b><small>Supports standard PDF files up to 50MB</small></div></section>
+ <section><h2>2. Choose Background Style</h2>
+  <div class="seg"><button data-m="color" class="on">🎨 Solid Color</button><button data-m="image">🖼 Custom Image</button></div>
+  <div id="pc">
+   <label>Preset Paper &amp; Dark Tones</label><div class="sw" id="sw"></div>
+   <div class="card row"><input type="color" id="cp" data-k="bg"><div style="flex:1"><label style="margin:0">Custom Hex Color</label><input type="text" id="hex" maxlength="7" style="text-transform:uppercase;font-family:monospace"></div></div>
+  </div>
+  <div id="pi" style="display:none">
+   <label>Upload PNG / JPG Texture</label>
+   <div class="drop" id="idz"><input type="file" id="ii" accept="image/png,image/jpeg,image/webp" hidden><b id="in">Select background image</b></div>
+   <label>Image Fit Style</label>
+   <select data-k="fit"><option value="cover">Fill Page (Cover)</option><option value="contain">Fit Entire Image (Contain)</option><option value="stretch">Stretch to Fit Page</option><option value="tile">Tile Pattern</option></select>
+   <label class="sp"><span>Image Opacity</span><span data-o="op"></span></label><input type="range" data-k="op" min="5" max="100">
+  </div>
+ </section>
+ <section class="card"><h2>3. Text &amp; Color Adjustments</h2>
+  <label>Text Blending Mode</label>
+  <select data-k="blend"><option value="multiply">Multiply (Best for Paper &amp; Sepia)</option><option value="transparent">Cutout White Page Background</option><option value="darken">Darken Only</option><option value="source-over">Normal Overlay</option></select>
+  <label class="sp"><span>Page Brightness</span><span data-o="br"></span></label><input type="range" data-k="br" min="50" max="150">
+  <label class="sp"><span>Contrast</span><span data-o="ct"></span></label><input type="range" data-k="ct" min="60" max="150">
+  <label class="sp"><span>Warm Tint</span><span data-o="warm"></span></label><input type="range" data-k="warm" min="0" max="100">
+  <label class="sp"><span>Paper Grain</span><span data-o="grain"></span></label><input type="range" data-k="grain" min="0" max="100">
+  <label class="sp"><span>Soft Vignette</span><span data-o="vig"></span></label><input type="range" data-k="vig" min="0" max="100">
+  <label class="tg">☀️ Invert PDF Text Color <input type="checkbox" data-k="inv"></label>
+  <small class="h">Useful when switching black text documents into Dark Mode for high readability.</small>
+ </section>
+ <section class="card"><h2>4. Export Settings</h2>
+  <label>Output Type</label>
+  <select data-k="out"><option value="v">Selectable Text (lossless, sharp at any zoom)</option><option value="f">Flat Image (JPEG, smallest)</option></select>
+  <label>Size &amp; Quality</label>
+  <select data-k="q"><option value="c">Compact (smallest file)</option><option value="b">Balanced</option><option value="s">Sharp (largest file)</option></select>
+  <label>Pages (blank = all, e.g. 1-3, 5)</label><input type="text" id="rg" placeholder="All pages">
+  <button class="btn" id="rs" style="margin-top:10px;width:100%">↺ Reset all settings</button>
+ </section>
+ <div class="foot">100% Client-Side Processing • Your files never leave your device</div>
+</aside>
+<div id="view">
+ <div id="empty"><div class="ic">📄</div><h3>No PDF Loaded</h3><p>Upload a PDF document from the left panel to customize page backgrounds and paper textures.</p><button class="btn" onclick="fi.click()">Choose PDF File</button></div>
+ <canvas id="cv"></canvas>
+ <div id="bar"><button class="btn" id="pv">‹</button><input type="number" id="pn" min="1"><span id="tp"></span><button class="btn" id="nx">›</button>
+  <span style="opacity:.3">|</span><button class="btn" id="zo">−</button><span id="zl" style="min-width:40px;text-align:center"></span><button class="btn" id="zi">+</button><button class="btn" id="zf">Fit</button>
+  <button class="btn" id="og" title="Hold to see the original">👁</button></div>
+</div>
+</main>
+<div class="ov" id="ov"><div class="sp1"></div><b id="om"></b><small id="os"></small><button class="btn" id="cx" style="margin-top:16px">✕ Cancel</button></div>
+<div id="toast"></div>
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],mk=(w,h)=>{const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d',{alpha:false});return c};let cx=0,rel,buf;
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+const D={bg:'#F4ECD8',mode:'color',fit:'cover',op:100,blend:'multiply',br:100,ct:100,warm:0,grain:0,vig:0,inv:false,q:'b',out:'v'},
+Q={c:[1.25,.7],b:[1.75,.82],s:[2.5,.92]},Bq={c:[.75,.7],b:[1,.85],s:[1.5,.92]},
+P=[['Sepia','#F4ECD8','multiply',0,'#5a3b1a'],['Warm','#FAF0E6','multiply',0,'#7a4a20'],['Cream','#FFF8DC','multiply',0,'#6b5a1a'],['Sage','#DDE5D0','multiply',0,'#3d4f2e'],
+['Rose','#F3E1DC','multiply',0,'#7a3b34'],['Dark','#18181b','transparent',1,'#ddd'],['Mocha','#2b2118','transparent',1,'#e8d2b4'],['White','#FFFFFF','multiply',0,'#333']];
+let S={...D},doc,name='document',n=0,p=1,zoom=1,img,cache,tok=0,orig=0,raf=0;
+try{Object.assign(S,JSON.parse(localStorage.getItem('cps')||'{}'),{mode:'color'})}catch(e){}
+const save=()=>{try{localStorage.setItem('cps',JSON.stringify({...S,mode:'color'}))}catch(e){}};
+const toast=t=>{const e=$('#toast');e.textContent=t;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',2800)};
+const ov=(m,s)=>{$('#ov').style.display=m?'flex':'none';$('#cx').style.display=m&&m[0]=='G'?'':'none';if(!m&&rel){rel();rel=0}$('#om').textContent=m||'';$('#os').textContent=s||''};
+const noise=(()=>{const c=mk(128,128),x=c.getContext('2d'),d=x.createImageData(128,128);for(let i=0;i<d.data.length;i+=4){d.data[i]=d.data[i+1]=d.data[i+2]=Math.random()*255;d.data[i+3]=255}x.putImageData(d,0,0);return c})();
+
+P.forEach((t,i)=>{const b=document.createElement('button');b.textContent=t[0];b.style.cssText=`background:${t[1]};color:${t[4]}`;b.onclick=()=>{S.bg=t[1];S.blend=t[2];S.inv=!!t[3];S.mode='color';sync();save();paint()};$('#sw').append(b)});
+
+function sync(){
+ $$('[data-k]').forEach(e=>{const v=S[e.dataset.k];e.type=='checkbox'?e.checked=v:e.value=v;const o=$(`[data-o="${e.dataset.k}"]`);if(o)o.textContent=v+'%'});
+ $('#hex').value=S.bg;
+ $$('[data-m]').forEach(b=>b.classList.toggle('on',b.dataset.m==S.mode));
+ $('#pc').style.display=S.mode=='color'?'':'none';$('#pi').style.display=S.mode=='image'?'':'none';
+ $$('#sw button').forEach((b,i)=>b.classList.toggle('on',P[i][1].toLowerCase()==S.bg.toLowerCase()&&P[i][2]==S.blend&&!!P[i][3]==S.inv));
+}
+document.addEventListener('input',e=>{const k=e.target.dataset.k;if(!k)return;const t=e.target;S[k]=t.type=='checkbox'?t.checked:t.type=='range'?+t.value:t.value;sync();save();paint()});
+$('#hex').oninput=e=>{let v=e.target.value.trim();if(v[0]!='#')v='#'+v;if(/^#[0-9a-f]{6}$/i.test(v)){S.bg=v;$('#cp').value=v;sync();$('#hex').value=e.target.value;save();paint()}};
+$$('[data-m]').forEach(b=>b.onclick=()=>{S.mode=b.dataset.m;sync();paint()});
+$('#rs').onclick=()=>{S={...D};sync();save();paint();toast('Settings reset')};
+$('#th').onclick=()=>{const d=document.documentElement,dark=d.dataset.theme?d.dataset.theme=='dark':matchMedia('(prefers-color-scheme:dark)').matches;d.dataset.theme=dark?'light':'dark'};
+
+function compose(x,w,h,src){
+ x.save();x.fillStyle=S.bg;x.fillRect(0,0,w,h);
+ if(S.mode=='image'&&img){x.globalAlpha=S.op/100;const f=S.fit,iw=img.width,ih=img.height;
+  if(f=='tile'){x.fillStyle=x.createPattern(img,'repeat');x.fillRect(0,0,w,h)}
+  else if(f=='stretch')x.drawImage(img,0,0,w,h);
+  else{const s=(f=='cover'?Math.max:Math.min)(w/iw,h/ih);x.drawImage(img,(w-iw*s)/2,(h-ih*s)/2,iw*s,ih*s)}
+  x.globalAlpha=1}
+ if(S.grain){x.globalAlpha=S.grain/170;x.globalCompositeOperation='overlay';x.fillStyle=x.createPattern(noise,'repeat');x.fillRect(0,0,w,h);x.globalAlpha=1}
+ x.globalCompositeOperation=S.blend=='transparent'?(S.inv?'screen':'multiply'):S.blend;
+ x.filter=[S.inv&&'invert(1)',S.br!=100&&`brightness(${S.br}%)`,S.ct!=100&&`contrast(${S.ct}%)`,S.warm&&`sepia(${S.warm*.6}%)`].filter(Boolean).join(' ')||'none';
+ src&&x.drawImage(src,0,0);x.filter='none';x.globalCompositeOperation='source-over';
+ if(S.vig){const g=x.createRadialGradient(w/2,h/2,Math.min(w,h)*.35,w/2,h/2,Math.hypot(w,h)/2);g.addColorStop(0,'rgba(60,30,0,0)');g.addColorStop(1,`rgba(60,30,0,${S.vig*.0055})`);x.fillStyle=g;x.fillRect(0,0,w,h)}
+ x.restore()}
+
+const paint=()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(draw)};
+async function draw(){
+ if(!doc)return;const t=++tok,pg=await doc.getPage(p),v1=pg.getViewport({scale:1}),dpr=Math.min(devicePixelRatio||1,2),
+ sc=Math.max(200,$('#view').clientWidth-48)/v1.width*zoom*dpr;
+ if(!cache||cache.p!=p||Math.abs(cache.sc-sc)>.001){
+  const v=pg.getViewport({scale:sc}),c=mk(Math.ceil(v.width),Math.ceil(v.height));
+  await pg.render({canvasContext:c.getContext('2d'),viewport:v}).promise;if(t!=tok)return;cache={p,sc,c}}
+ const c=$('#cv'),s=cache.c;c.width=s.width;c.height=s.height;c.style.width=s.width/dpr+'px';c.style.display='block';
+ const x=c.getContext('2d');if(orig){x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(s,0,0)}else compose(x,c.width,c.height,s);
+ $('#pn').value=p;$('#tp').textContent='of '+n;$('#zl').textContent=Math.round(zoom*100)+'%';$('#pv').disabled=p<=1;$('#nx').disabled=p>=n}
+const go=d=>{const q=Math.min(n,Math.max(1,d));if(q!=p){p=q;paint()}else $('#pn').value=p},zm=z=>{zoom=Math.min(4,Math.max(.4,z));paint()};
+$('#pv').onclick=()=>go(p-1);$('#nx').onclick=()=>go(p+1);$('#pn').onchange=e=>go(+e.target.value||1);
+$('#zi').onclick=()=>zm(zoom*1.25);$('#zo').onclick=()=>zm(zoom/1.25);$('#zf').onclick=()=>zm(1);
+const og=v=>()=>{orig=v;paint()};$('#og').onpointerdown=og(1);['pointerup','pointerleave'].forEach(k=>$('#og').addEventListener(k,og(0)));
+addEventListener('keydown',e=>{if(/INPUT|SELECT/.test(e.target.tagName)||!doc)return;({ArrowLeft:()=>go(p-1),ArrowRight:()=>go(p+1),'+':()=>zm(zoom*1.25),'=':()=>zm(zoom*1.25),'-':()=>zm(zoom/1.25),'0':()=>zm(1)})[e.key]?.()});
+addEventListener('resize',()=>{clearTimeout(draw.r);draw.r=setTimeout(paint,150)});
+
+async function loadPdf(f){
+ if(f.type!='application/pdf'&&!/\.pdf$/i.test(f.name))return toast('Please choose a PDF file');
+ if(f.size>50e6)return toast('File is over 50MB');
+ ov('Reading PDF File...','Loading document structure');
+ try{buf=await f.arrayBuffer();doc=await pdfjsLib.getDocument({data:buf.slice(0)}).promise;n=doc.numPages;p=1;zoom=1;cache=null;name=f.name.replace(/\.[^/.]+$/,'');
+  $('#fn').textContent=f.name;$('#empty').style.display='none';$('#bar').style.display='flex';$('#pn').max=n;$('#pdf').disabled=$('#png').disabled=false;await draw()}
+ catch(e){console.error(e);toast('Failed to load PDF (corrupted or password protected)')}
+ ov()}
+function loadImg(f){if(!f.type.startsWith('image/'))return toast('Please use PNG, JPG or WebP');const i=new Image();i.onload=()=>{img=i;S.mode='image';$('#in').textContent=f.name;sync();paint()};i.src=URL.createObjectURL(f)}
+$('#dz').onclick=()=>$('#fi').click();$('#fi').onchange=e=>e.target.files[0]&&loadPdf(e.target.files[0]);
+$('#idz').onclick=()=>$('#ii').click();$('#ii').onchange=e=>e.target.files[0]&&loadImg(e.target.files[0]);
+addEventListener('dragover',e=>{e.preventDefault();$('#dz').classList.add('on')});addEventListener('dragleave',e=>{if(!e.relatedTarget)$('#dz').classList.remove('on')});
+addEventListener('drop',e=>{e.preventDefault();$('#dz').classList.remove('on');const f=e.dataTransfer.files[0];if(f)f.type.startsWith('image/')?loadImg(f):loadPdf(f)});
+
+$('#png').onclick=()=>$('#cv').toBlob(b=>{const a=document.createElement('a');a.download=`${name} Page ${p} (Edited).png`;a.href=URL.createObjectURL(b);a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5e3)});
+function range(s){if(!s.trim())return Array.from({length:n},(_,i)=>i+1);const r=new Set;s.split(',').forEach(t=>{const[a,b]=t.split('-').map(v=>parseInt(v));if(a)for(let i=a;i<=(b||a);i++)if(i>=1&&i<=n)r.add(i)});return[...r].sort((a,b)=>a-b)}
+$('#pdf').onclick=async()=>{
+ const L=range($('#rg').value);if(!L.length)return toast('No valid pages in that range');
+ const V=S.out!='f',[sc,ql]=(V?Bq:Q)[S.q],out=await PDFLib.PDFDocument.create();cx=0;navigator.locks?.request('cps-export',()=>new Promise(r=>rel=r));$('#cx').textContent='✕ Cancel';
+ try{const R=[];let nx=0,dn=0;ov('Generating Edited PDF...',`Processing ${L.length} pages`);
+  const wk=async()=>{while(nx<L.length&&!cx){const i=L[nx++],pg=await doc.getPage(i),v=pg.getViewport({scale:sc}),s=V?null:mk(Math.ceil(v.width),Math.ceil(v.height));
+   if(!V)await pg.render({canvasContext:s.getContext('2d'),viewport:v,intent:'print'}).promise;
+   const c=mk(Math.ceil(v.width),Math.ceil(v.height));compose(c.getContext('2d'),c.width,c.height,s);
+   const b=await new Promise(r=>c.toBlob(r,'image/jpeg',ql)),d=pg.getViewport({scale:1});
+   R[L.indexOf(i)]={b:await b.arrayBuffer(),w:d.width,h:d.height};pg.cleanup();ov('Generating Edited PDF...',`Processed ${++dn} of ${L.length} pages`)}};
+  await Promise.all(Array.from({length:Math.min(3,L.length)},wk));
+  if(cx){ov();return toast('Export cancelled')}
+  if(!V)for(const r of R){const im=await out.embedJpg(r.b);out.addPage([r.w,r.h]).drawImage(im,{x:0,y:0,width:r.w,height:r.h})}
+  else{const E=await out.embedPdf(buf,L.map(i=>i-1)),B=PDFLib.BlendMode,K=S.blend=='darken'?B.Darken:S.blend=='source-over'?B.Normal:B.Multiply,wh=PDFLib.rgb(1,1,1);
+   for(const[k,r]of R.entries()){const e=E[k],a={x:0,y:0,width:e.width,height:e.height},pg=out.addPage([e.width,e.height]),im=await out.embedJpg(r.b);
+    if(S.inv){pg.drawRectangle({...a,color:wh});pg.drawPage(e,a);pg.drawRectangle({...a,color:wh,blendMode:B.Difference});pg.drawImage(im,{...a,blendMode:B.Lighten})}
+    else{pg.drawImage(im,a);pg.drawPage(e,{...a,blendMode:K})}
+    if(S.warm){const t=S.warm/100;pg.drawRectangle({...a,color:PDFLib.rgb(1,1-.09*t,1-.24*t),blendMode:B.Multiply})}
+    if(S.br<100){const g=S.br/100;pg.drawRectangle({...a,color:PDFLib.rgb(g,g,g),blendMode:B.Multiply})}}}
+  const by=await out.save(),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([by],{type:'application/pdf'}));a.download=`${name} (Edited).pdf`;a.click();
+  toast(`Saved • ${(by.length/1048576).toFixed(1)} MB`)}
+ catch(e){console.error(e);toast('Could not build the PDF, please try again')}
+ ov()};
+$('#cx').onclick=()=>{cx=1;$('#cx').textContent='Cancelling…'};
+$('#cv').getContext('2d',{alpha:false});sync();
+</script></body></html>
